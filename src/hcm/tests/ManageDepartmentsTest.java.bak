@@ -1,0 +1,220 @@
+package hcm.tests;
+
+import static util.ReportLogger.log;
+import static util.ReportLogger.logFailure;
+
+import java.util.ArrayList;
+import java.util.List;
+import static common.ExcelUtilities.getCellType;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.internal.FindsByXPath;
+import org.testng.annotations.Test;
+
+import common.BaseTest;
+import hcm.pageobjects.FuseWelcomePage;
+import hcm.pageobjects.LoginPage;
+import hcm.pageobjects.TaskListManagerTopPage;
+import hcm.pageobjects.WorkforceStructureTasksPage;
+
+import static util.ReportLogger.log;
+import static util.ReportLogger.logFailure;
+
+public class ManageDepartmentsTest extends BaseTest{
+	@Test
+	public void a_test() throws Exception  {
+		testReportFormat();
+	
+	try{
+		createDepartment();
+	  
+	  	}
+	
+        catch (AssertionError ae)
+        {
+            //takeScreenshot();
+            logFailure(ae.getMessage());
+
+            throw ae;
+        }
+        catch (Exception e)
+        {
+            //takeScreenshot();
+            logFailure(e.getMessage());
+
+            throw e;
+        }
+    }
+
+	public void createDepartment() throws Exception{
+			
+		LoginPage login = new LoginPage(driver);
+		takeScreenshot();
+		login.enterUserID(5);
+		login.enterPassword(6);
+		login.clickSignInButton();
+		
+		FuseWelcomePage welcome = new FuseWelcomePage(driver);
+		//takeScreenshot();
+		welcome.clickNavigator("More...");
+		clickNavigationLink("Workforce Structures");
+			
+		WorkforceStructureTasksPage task = new WorkforceStructureTasksPage(driver);
+		takeScreenshot();
+		
+		task.waitForElementToBeClickable(60, "//li/a[text()='Manage Departments']");
+		task.clickTask("Manage Departments");
+		Thread.sleep(5000);
+		//takeScreenshot();
+		
+		task.clickCreate();
+		Thread.sleep(5000);
+		//Enable task
+		int inputLabel = 7;
+		int inputs = 8;
+		int rowNum = 8;
+		String type;
+		String[] labelHolder = {};
+		
+		//Fill in Entries.....
+		//System.out.println("Old query Value: "+getExcelData(rowNum, inputs)); System.out.println("New value: "+getExcelData(9, inputs, "date"));
+		//System.out.println("Correct value: 3/9/2016");
+		
+		//System.out.println("Old query Value: "+getExcelData(rowNum, 18)); System.out.println("New Value: "+getExcelData(9, 18, "time"));
+		//System.out.println("Correct value: 09:00");
+		
+		//Test Case
+		//while(inputs < 22){
+		//	System.out.println(inputs+": "+getExcelData(rowNum, inputs, "text"));
+		//	inputs += 1;
+		//}
+		task.waitForElementToBeClickable(25, "//td/label[text()='"+getExcelData(inputLabel, 8, "text")+"']/../../td/input");
+		//waitForClickableElement("//td/label[text()='"+getExcelData(inputLabel, 8, "text")+"']/../../td/input", "xpath");
+		
+		System.out.println("Current Header is:"+driver.findElement(By.xpath("//h2")).getText());
+		for(int colNum = 8;getExcelData(inputLabel, colNum, "text").length()>0; colNum++){
+				String dataLocator = getExcelData(inputLabel, colNum, "text");
+				System.out.println("\n**********\nFiltering text....."+dataLocator);
+				dataLocator = task.filterDataLocator(dataLocator);
+				//Input Type Decider...
+				/*if(getCellType(inputLabel, colNum) == 1){
+							type = "text";
+
+					}else*/ 
+				if(dataLocator.contains("Date")){
+							type = "date";
+						}else if(dataLocator.contains("Time")){
+							type = "time";
+						}else{
+							type = "text";
+						}
+				
+				//Proceed on Iterating all the inputs....
+				String dataPath =  task.retryingSearchInput(dataLocator);
+				int typeIndex = dataPath.lastIndexOf("/");
+				String inputType = dataPath.substring(typeIndex+1);	
+				System.out.println("Datapath Type is "+inputType);	
+				
+				String inputValue = getExcelData(inputs, colNum, type);
+				System.out.println("Value: "+inputValue+" ExcelType: "+type);
+				
+				if(!inputType.contentEquals("select")){
+						task.clickByXpath(dataPath);
+						driver.findElement(By.xpath(dataPath)).clear();
+						task.enterTextByXpath(dataPath, inputValue);
+						//driver.findElement(By.xpath(dataPath)).sendKeys(inputValue);
+					}else if(inputType.equalsIgnoreCase("select")){
+								//driver.findElement(By.xpath(dataPath)).click();
+								task.clickByXpath(dataPath);
+							if(!inputValue.equalsIgnoreCase("")){
+									driver.findElement(By.xpath(dataPath+"/option['"+inputValue+"']"));
+								}else{
+									//Do nothing...
+								}
+					}
+				
+				Thread.sleep(2000);
+				//Triggering Next Button.....
+				String nextDataLocator = getExcelData(inputLabel, colNum+1);
+				nextDataLocator = task.filterDataLocator(nextDataLocator);
+				labelHolder = task.findAllAvailableLabels();
+				System.out.println("Current Header is: "+driver.findElement(By.xpath("//h2")).getText());
+				if(!task.scanLabelPresence(labelHolder, nextDataLocator)){
+					//while(!is_element_visible("//td/label[text()='"+nextDataLocator+"']/../../td/input", "xpath")){
+						Thread.sleep(1000); task.clickNext();
+						task.waitForElementToBeClickable(25, "//td/label[text()='"+nextDataLocator+"']/../../td/input");
+						//waitForClickableElement("//td/label[text()='"+nextDataLocator+"']/../../td/input", "xpath");
+					//}
+					//Thread.sleep(1000); task.clickNext();
+					System.out.println("Moving on to next page.....");
+				}
+				System.out.println("Current Header is now: "+driver.findElement(By.xpath("//h2")).getText());
+				
+		}
+		
+		/*task.enterData("Effective Start Date", getExcelData(rowNum, inputs)); inputs++;
+		task.enterDropdownData("Department Set", getExcelData(rowNum, inputs)); inputs++;
+		task.enterData("Name", getExcelData(rowNum, inputs)); inputs++;
+		task.enterData("Internal Address Line", getExcelData(rowNum, inputs)); inputs++;
+		task.selectFromDropdown("Status", getExcelData(rowNum, inputs)); inputs++;
+		task.enterDropdownData("Action Reason", getExcelData(rowNum, inputs)); inputs++;
+		task.enterDropdownLocation("Location", getExcelData(rowNum, inputs)); inputs++;
+		
+		task.clickNext();
+		Thread.sleep(1000);
+		task.clickNext();
+		Thread.sleep(3000);
+		//task.waitForElementToBeClickable(10, "//td/label[text()='Reporting Name']/../../td/input");
+		//Skipped Context Values...
+		task.enterData("Reporting Name", getExcelData(rowNum, inputs));inputs+=2;
+		task.enterDropdownData("Manager", getExcelData(rowNum, inputs)); inputs++;
+
+		task.enterData("Work Start Time", getExcelData(rowNum, inputs)); inputs++;
+		task.enterData("Work End Time", getExcelData(rowNum, inputs)); inputs++;
+		task.enterData("Standard Working Hours", getExcelData(rowNum, inputs)); inputs++; 
+		task.enterDropdownData("Standard Working Hours Frequency", getExcelData(rowNum, inputs)); inputs++;*/
+		
+		
+		task.waitForElementToBeClickable(25, "//a/span[text()='Submit']");
+		task.clickSubmitButton();
+		task.waitForElementToBeClickable(25, "//button[text()='es']");
+		//Saving the work.....
+		task.clickYesButton(); //button[text()='O']
+		task.waitForElementToBeClickable(25, "//button[text()='O']");
+		task.clickOKButton();
+		Thread.sleep(10000);
+		
+		//Thread.sleep(3000);
+		//task.clickSaveandCloseButton();
+		//Thread.sleep(10000);
+		
+		//Verifying if the department has been added.....
+		task.clickTask("Manage Departments");
+		Thread.sleep(10000);//5000
+		//task.enterSearchData("Name", getExcelData(inputs, 10, "text"));
+		
+		String dataSearchPath = task.retryingSearchInput("Name");
+		task.jsFindThenClick(dataSearchPath);
+		driver.findElement(By.xpath(dataSearchPath)).clear();
+		task.enterTextByXpath(dataSearchPath, getExcelData(inputs, 10, "text"));
+		
+		Thread.sleep(2000);
+		
+		task.clickSearchButton();
+		Thread.sleep(20000);
+		takeScreenshot();
+		
+		//Ending message::
+				Thread.sleep(5000);
+				//takeScreenshot();
+				
+				//task.clickSaveAndCloseButton();
+				
+				System.out.println("Department Creation Completed\n***************\n");
+				log("Department Creation Completed");
+				
+				Thread.sleep(1500);
+				//takeScreenshot();
+	}
+}

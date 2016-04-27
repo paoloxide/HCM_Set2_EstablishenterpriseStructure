@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="SDFC Regression Test" verbose="2">
+	<listeners>
+		<listener class-name="org.uncommons.reportng.HTMLReporter"/>
+		<listener class-name="org.uncommons.reportng.JUnitXMLReporter"/>
+	</listeners>
+	
+	
+   	<test name="Establish Enterprise Structures">
+  	 <classes> 
+    	<parameter name="TestNo" value="Test Case"> 
+ 			<parameter name="ExcelFilePath" value="//var//jenkins_home//jobs//Oracle//jobs//HCM//jobs//HCM_Features_Manager//jobs//Set_2//jobs//Retrieve_Configuration//workspace//Set2.xlsx"></parameter> 
+     		<parameter name="ExcelSheetName" value="Establish Enterprise Structure"></parameter> 
+      		<class name="hcm.tests.case2.EstablishEnterpriseStructuresTest"/>       
+      	</parameter> 
+     </classes> 
+   	</test> 
+   	
+</suite> 
